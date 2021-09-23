@@ -1,7 +1,7 @@
 {
-  "name": "oazapfts",
+  "name": "@tricus/oazapfts",
   "version": "3.5.0",
-  "description": "OpenApi TypeScript client generator",
+  "description": "OpenApi TypeScript client generator k6",
   "main": "lib/index.js",
   "bin": {
     "oazapfts": "lib/codegen/cli.js"
@@ -19,9 +19,9 @@
     "openapi",
     "typescript"
   ],
-  "author": "Felix Gnass",
+  "author": "Felix Gnass, with minor changes by tricus",
   "license": "MIT",
-  "repository": "cellular/oazapfts",
+  "repository": "tricus/oazapfts",
   "devDependencies": {
     "@jest/types": "^27.0.2",
     "@types/jest": "^27.0.1",

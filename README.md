@@ -1,6 +1,6 @@
-# 🍻 oazapfts!
+# 🍻 @tricus/oazapfts
 
-Generate TypeScript clients to tap into OpenAPI servers.
+Generate TypeScript clients to tap into OpenAPI servers, for use with [`k6`](https://k6.io).
 
 #
 
@@ -11,6 +11,7 @@ This fork produces APIs suitable for use with the [`k6`](https://k6.io) load tes
 1. `runtime` is modified to use [`k6`'s](https://k6.io) [http library](https://k6.io/docs/javascript-api/k6-http/) for http requests.
    - Use of `aync/Promise` removed
 1. `--ignoreHeader` option added to the CLI which allows filtering out of headers via `simple-string-match` or `/regexp with options/i`.
+1. Tests are not updated and are therefore presumably largely broken.
 
 #
 
@@ -25,7 +26,7 @@ This fork produces APIs suitable for use with the [`k6`](https://k6.io) load tes
 ## Installation
 
 ```
-npm install oazapfts
+npm install @tricus/oazapfts
 ```
 
 **NOTE:** With version 3.0.0 oazapfts has become a runtime dependency and the generated code does no longer include all the fetch logic.
@@ -57,10 +58,9 @@ Example:
     http://my.host.com/my-api/swagger/v1/swagger.json \
     ./my-api.ts                                       \
     --ignoreHeader /X-Api-Key/i
-
 ```
 
-- If you're using `yarn` you could replace `./node_modules/.bin/oazapfts` with `yarn oazapfts`.
+[//]: # "NOTE: The excessive spaces and dashes below seem to have been inserted at commit time by some unknown component which seems to enforce that the table header and horizontal rule must have same length as the cell content."
 
 | Note for Git Bash users                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
