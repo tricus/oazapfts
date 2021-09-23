@@ -628,11 +628,30 @@ export default class ApiGenerator {
           name += count;
         }
 
+        // convert commandline /regexp/ string to actual RegExp; or just return the string
+        function toMatchable(s: string): RegExp | string {
+          var i = s.lastIndexOf("/");
+          if (i <= 0 || s[0] != "/") return s;
+          try {
+            return new RegExp(s.slice(1, i), s.slice(i + 1));
+          } catch {
+            return s;
+          }
+        }
+
         // merge item and op parameters
         const resolvedParameters = [
           ...this.resolveArray(item.parameters),
           ...this.resolveArray(op.parameters),
-        ];
+        ].filter(
+          (param) =>
+            !(
+              param.in === "header" &&
+              (this.opts.ignoreHeader || []).some((h) =>
+                param.name.match(toMatchable(h))
+              )
+            )
+        );
 
         // expand older OpenAPI parameters into deepObject style where needed
         const parameters = this.isConverted

@@ -1,48 +1,71 @@
 import * as qs from "./query";
 import { joinUrl, stripUndefined } from "./util";
-import { ok } from "../";
+import { ok, SuccessResponse } from "../";
+
+import { bytes as k6_bytes } from "k6";
+import {
+  Params as k6_Params,
+  RequestBody as k6_RequestBody,
+  request as k6_request,
+} from "k6/http";
 
 export type RequestOpts = {
   baseUrl?: string;
-  fetch?: typeof fetch;
-  formDataConstructor?: new () => FormData;
-  headers?: Record<string, string | undefined>;
-} & Omit<RequestInit, "body" | "headers">;
+  method?: string;
+  fetch?: typeof k6_request;
+} & k6_Params;
 
 type FetchRequestOpts = RequestOpts & {
-  body?: string | FormData;
+  body?: k6_RequestBody;
 };
 
 type JsonRequestOpts = RequestOpts & {
   body?: object;
 };
 
-export type ApiResponse = { status: number; data?: any };
-
 type MultipartRequestOpts = RequestOpts & {
   body?: Record<string, string | Blob | undefined | any>;
 };
 
-export function runtime(defaults: RequestOpts) {
-  async function fetchText(url: string, req?: FetchRequestOpts) {
-    const res = await doFetch(url, req);
+export type ApiResponse = { status: number; data?: any };
+
+interface runtimeType {
+  ok<T extends ApiResponse>(someresult: T): SuccessResponse<T>;
+  fetchText(
+    url: string,
+    req?: FetchRequestOpts | undefined
+  ): {
+    status: number;
+    contentType: string;
+    data: string | number[] | null | undefined;
+  };
+  fetchJson<T extends ApiResponse>(url: string, req?: FetchRequestOpts): T;
+  fetchBlob<T extends ApiResponse>(url: string, req?: FetchRequestOpts): T;
+  json(opts: JsonRequestOpts): RequestOpts;
+  form(opts: JsonRequestOpts): RequestOpts;
+  multipart(opts: MultipartRequestOpts): MultipartRequestOpts;
+}
+
+export function runtime(defaults: RequestOpts): runtimeType {
+  function fetchText(url: string, req?: FetchRequestOpts) {
+    const res = doFetch(url, req);
     let data;
     try {
-      data = await res.text();
+      data = res.body;
     } catch (err) {}
 
     return {
       status: res.status,
-      contentType: res.headers.get("content-type"),
+      contentType: res.headers["Content-Type"],
       data,
     };
   }
 
-  async function fetchJson<T extends ApiResponse>(
+  function fetchJson<T extends ApiResponse>(
     url: string,
     req: FetchRequestOpts = {}
   ) {
-    const { status, contentType, data } = await fetchText(url, {
+    const { status, contentType, data } = fetchText(url, {
       ...req,
       headers: {
         ...req.headers,
@@ -56,37 +79,37 @@ export function runtime(defaults: RequestOpts) {
       : false;
 
     if (isJson) {
-      return { status, data: data ? JSON.parse(data) : null } as T;
+      return { status, data: data ? JSON.parse(data as string) : null } as T;
     }
 
     return { status, data } as T;
   }
 
-  async function fetchBlob<T extends ApiResponse>(
+  function fetchBlob<T extends ApiResponse>(
     url: string,
     req: FetchRequestOpts = {}
   ) {
-    const res = await doFetch(url, req);
+    const res = doFetch(url, req);
     let data;
     try {
-      data = await res.blob();
+      data = res.body as k6_bytes; // probably have to convert bytes to object here
     } catch (err) {}
     return { status: res.status, data } as T;
   }
 
-  async function doFetch(url: string, req: FetchRequestOpts = {}) {
+  function doFetch(url: string, req: FetchRequestOpts = {}) {
     const {
       baseUrl,
+      method,
       headers,
+      body,
       fetch: customFetch,
-      ...init
-    } = {
-      ...defaults,
-      ...req,
-    };
+      ...params
+    } = { ...defaults, ...req };
     const href = joinUrl(baseUrl, url);
-    const res = await (customFetch || fetch)(href, {
-      ...init,
+
+    const res = (customFetch || k6_request)(method ?? "GET", href, body, {
+      ...params,
       headers: stripUndefined({ ...defaults.headers, ...headers }),
     });
     return res;
@@ -122,15 +145,9 @@ export function runtime(defaults: RequestOpts) {
 
     multipart({ body, ...req }: MultipartRequestOpts) {
       if (!body) return req;
-      const data = new (defaults.formDataConstructor ||
-        req.formDataConstructor ||
-        FormData)();
-      Object.entries(body).forEach(([name, value]) => {
-        data.append(name, value);
-      });
       return {
         ...req,
-        body: data,
+        body: body,
       };
     },
   };

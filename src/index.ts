@@ -26,11 +26,11 @@ type ResponseHandler<T extends ApiResponse> = {
  *   400: (err: string) => console.log(err),
  * })
  **/
-export async function handle<
-  T extends ApiResponse,
-  H extends ResponseHandler<T>
->(promise: Promise<T>, handler: H): Promise<ReturnType<H[keyof H]>> {
-  const { status, data } = await promise;
+export function handle<T extends ApiResponse, H extends ResponseHandler<T>>(
+  result: T,
+  handler: H
+): ReturnType<H[keyof H]> {
+  const { status, data } = result;
   const statusHandler = (handler as any)[status];
   if (statusHandler) return statusHandler(data);
   if (handler.default) return handler.default(status, data);
@@ -40,7 +40,7 @@ export async function handle<
 const SUCCESS_CODES = [200, 201, 202, 204] as const;
 type SuccessCodes = typeof SUCCESS_CODES[number];
 
-type SuccessResponse<T extends ApiResponse> = DataType<T, SuccessCodes>;
+export type SuccessResponse<T extends ApiResponse> = DataType<T, SuccessCodes>;
 
 /**
  * Utility function to directly return any successful response
@@ -55,17 +55,17 @@ type SuccessResponse<T extends ApiResponse> = DataType<T, SuccessCodes>;
  *   console.log(err.status)
  * }
  */
-export async function ok<T extends ApiResponse>(
-  promise: Promise<T>
-): Promise<SuccessResponse<T>> {
-  const res = await promise;
+export function ok<T extends ApiResponse>(result: T): SuccessResponse<T> {
+  const res = result;
   if (SUCCESS_CODES.some((s) => s == res.status)) return res.data;
   throw new HttpError(res.status, res.data);
 }
 
 export type Args<T> = T extends (...args: infer U) => any ? U : any;
-export type ApiFunction = (...args: any[]) => Promise<ApiResponse>;
-export type AsyncReturnType<T> = T extends (...args: any[]) => Promise<infer V>
+
+export type ApiFunction = (...args: any[]) => ApiResponse;
+
+export type AsyncReturnType<T> = T extends (...args: any[]) => infer V
   ? V
   : never;
 
@@ -73,9 +73,7 @@ export type OkResponse<T extends ApiFunction> = SuccessResponse<
   AsyncReturnType<T>
 >;
 
-export type Okify<T extends ApiFunction> = (
-  ...args: Args<T>
-) => Promise<OkResponse<T>>;
+export type Okify<T extends ApiFunction> = (...args: Args<T>) => OkResponse<T>;
 
 /**
  * Utility function to wrap an API function with `ok(...)`.
