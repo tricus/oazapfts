@@ -55,7 +55,7 @@ generate(spec, dest, {
 });
 
 // Support workarounds for Git Bash path mangling: strip leading space or extra slash from /regexp/ string
-function fixIgnoreHeader(arg: string | string[]) {
+function fixIgnoreHeader(arg: string | string[] = []) {
   return (Array.isArray(arg) ? arg : [arg]).map((s) =>
     s.startsWith(" /") || s.startsWith("//") ? s.slice(1) : s
   );
