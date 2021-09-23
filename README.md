@@ -66,8 +66,6 @@ Example:
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Git Bash mangles commandline args starting with '/' which affects the --ignoreHeader option. To fix, do one of the following:<br>- Set a shell variable: `export MSYS_NO_PATHCONV=1`, or<br>- Set a process variable by inserting `MSYS_NO_PATHCONV=1` before the command, or<br>- Double-up the initial slash: `-g //myregex/`, or<br>- Double-quote and prefix with space: `-g " /myregexp/"`, or<br>- Prefix with escaped space: `-g \ /myregexp/`<br>See:<br>- https://github.com/git-for-windows/msys2-runtime/pull/11<br>- https://stackoverflow.com/q/28533664/426028 |
 
-|
-
 ## Overriding the defaults
 
 The generated file exports a `defaults` constant that can be used to override the `basePath`, provide a custom `fetch` implementation or to send additional headers with each request:
