@@ -1,6 +1,6 @@
 {
   "name": "@tricus/oazapfts",
-  "version": "3.5.0-k6'd",
+  "version": "3.5.0",
   "description": "OpenApi TypeScript client generator k6",
   "main": "lib/index.js",
   "bin": {
