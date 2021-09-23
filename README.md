@@ -2,6 +2,18 @@
 
 Generate TypeScript clients to tap into OpenAPI servers.
 
+#
+
+## What's different in this fork?
+
+This fork produces APIs suitable for use with the [`k6`](https://k6.io) load testing tool.
+
+1. `runtime` is modified to use [`k6`'s](https://k6.io) [http library](https://k6.io/docs/javascript-api/k6-http/) for http requests.
+   - Use of `aync/Promise` removed
+1. `--ignoreHeader` option added to the CLI which allows filtering out of headers via `simple-string-match` or `/regexp with options/i`.
+
+#
+
 ## Features
 
 - **AST-based**:
@@ -23,12 +35,38 @@ npm install oazapfts
 ```
 oazapfts <spec> [filename]
 
+<spec>: URL or local path of OpenAPI or Swagger doc (json or yml)
+<filename>: output path/name for generated .ts file (if omitted, outputs to stdout)
+
 Options:
---exclude, -e tag to exclude
---include, -i tag to include
+--exclude | -e <tag to exclude>
+--include | -i <tag to include>
+--ignoreHeader | -g  <header to ignore (string or /regexp/)>
+--optimistic
+
+Options can be specified multiple times.
 ```
 
-Where `<spec>` is the URL or local path of an OpenAPI or Swagger spec (in either json or yml) and `<filename>` is the location of the `.ts` file to be generated. If the filename is omitted, the code is written to stdout.
+- [`--optimistic`](#OptimisticAPIs) option is detailed [below](#OptimisticAPIs)
+
+Example:
+
+```bash
+# Read from url and output to ./my-api.ts
+./node_modules/.bin/oazapftfs                         \
+    http://my.host.com/my-api/swagger/v1/swagger.json \
+    ./my-api.ts                                       \
+    --ignoreHeader /X-Api-Key/i
+
+```
+
+- If you're using `yarn` you could replace `./node_modules/.bin/oazapfts` with `yarn oazapfts`.
+
+| Note for Git Bash users                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Git Bash mangles commandline args starting with '/' which affects the --ignoreHeader option. To fix, do one of the following:<br>- Set a shell variable: `export MSYS_NO_PATHCONV=1`, or<br>- Set a process variable by inserting `MSYS_NO_PATHCONV=1` before the command, or<br>- Double-up the initial slash: `-g //myregex/`, or<br>- Double-quote and prefix with space: `-g " /myregexp/"`, or<br>- Prefix with escaped space: `-g \ /myregexp/`<br>See:<br>- https://github.com/git-for-windows/msys2-runtime/pull/11<br>- https://stackoverflow.com/q/28533664/426028 |
+
+|
 
 ## Overriding the defaults
 
@@ -122,7 +160,7 @@ await handle(api.getPetById(1), {
 });
 ```
 
-## Optimistic APIs
+## <a name="OptimisticAPIs"></a>Optimistic APIs
 
 Instead of handling errors right in place we can also use the `ok` helper:
 
