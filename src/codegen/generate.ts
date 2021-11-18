@@ -852,6 +852,33 @@ export default class ApiGenerator {
       });
     });
 
+    function makeComment(text: string): ts.SynthesizedComment {
+      return {
+        text,
+        hasLeadingNewline: true,
+        hasTrailingNewLine: true,
+        kind: ts.SyntaxKind.SingleLineCommentTrivia,
+        pos: -1,
+        end: -1,
+      };
+    }
+    ts.setSyntheticLeadingComments(
+      this.aliases[0],
+      ["#endregion", " ", "#region ### Types ".padEnd(80, "#")].map(makeComment)
+    );
+    ts.setSyntheticTrailingComments(
+      this.aliases[this.aliases.length - 1],
+      [" ", "#endregion"].map(makeComment)
+    );
+    ts.setSyntheticLeadingComments(
+      functions[0],
+      [" ", "#region ### Functions ".padEnd(80, "#")].map(makeComment)
+    );
+    ts.setSyntheticTrailingComments(
+      functions[functions.length - 1],
+      [" ", "#endregion"].map(makeComment)
+    );
+
     Object.assign(stub, {
       statements: cg.appendNodes(
         stub.statements,

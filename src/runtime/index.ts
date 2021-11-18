@@ -7,12 +7,15 @@ import {
   Params as k6_Params,
   RequestBody as k6_RequestBody,
   request as k6_request,
+  RefinedResponse,
+  ResponseType,
 } from "k6/http";
 
 export type RequestOpts = {
   baseUrl?: string;
   method?: string;
   fetch?: typeof k6_request;
+  retries?: number;
 } & k6_Params;
 
 type FetchRequestOpts = RequestOpts & {
@@ -27,7 +30,7 @@ type MultipartRequestOpts = RequestOpts & {
   body?: Record<string, string | Blob | undefined | any>;
 };
 
-export type ApiResponse = { status: number; data?: any };
+export type ApiResponse = { status: number; data?: any; tries?: number };
 
 interface runtimeType {
   ok<T extends ApiResponse>(someresult: T): SuccessResponse<T>;
@@ -48,16 +51,17 @@ interface runtimeType {
 
 export function runtime(defaults: RequestOpts): runtimeType {
   function fetchText(url: string, req?: FetchRequestOpts) {
-    const res = doFetch(url, req);
+    const { response, tries } = doFetch(url, req);
     let data;
     try {
-      data = res.body;
+      data = response.body;
     } catch (err) {}
 
     return {
-      status: res.status,
-      contentType: res.headers["Content-Type"],
+      status: response.status,
+      contentType: response.headers["Content-Type"],
       data,
+      tries,
     };
   }
 
@@ -65,7 +69,8 @@ export function runtime(defaults: RequestOpts): runtimeType {
     url: string,
     req: FetchRequestOpts = {}
   ) {
-    const { status, contentType, data } = fetchText(url, {
+    //const { status, contentType, data } = fetchText(url, {
+    const { status, contentType, data, tries } = fetchText(url, {
       ...req,
       headers: {
         ...req.headers,
@@ -78,23 +83,21 @@ export function runtime(defaults: RequestOpts): runtimeType {
       ? jsonTypes.some((mimeType) => contentType.includes(mimeType))
       : false;
 
-    if (isJson) {
-      return { status, data: data ? JSON.parse(data as string) : null } as T;
-    }
-
-    return { status, data } as T;
+    return isJson
+      ? ({ status, data: data ? JSON.parse(data as string) : null, tries } as T)
+      : ({ status, data, tries } as T);
   }
 
   function fetchBlob<T extends ApiResponse>(
     url: string,
     req: FetchRequestOpts = {}
   ) {
-    const res = doFetch(url, req);
+    const { response, tries } = doFetch(url, req);
     let data;
     try {
-      data = res.body as k6_bytes; // probably have to convert bytes to object here
+      data = response.body as k6_bytes; // probably have to convert bytes to object here
     } catch (err) {}
-    return { status: res.status, data } as T;
+    return { status: response.status, data, tries } as T;
   }
 
   function doFetch(url: string, req: FetchRequestOpts = {}) {
@@ -104,15 +107,24 @@ export function runtime(defaults: RequestOpts): runtimeType {
       headers,
       body,
       fetch: customFetch,
+      retries = 0, // default = 0 retries
       ...params
     } = { ...defaults, ...req };
+
     const href = joinUrl(baseUrl, url);
 
-    const res = (customFetch || k6_request)(method ?? "GET", href, body, {
-      ...params,
-      headers: stripUndefined({ ...defaults.headers, ...headers }),
-    });
-    return res;
+    const maxTries = Math.max(retries, 0) + 1;
+    let tries = 0;
+    let response: RefinedResponse<ResponseType>;
+    do {
+      response = (customFetch || k6_request)(method ?? "GET", href, body, {
+        ...params,
+        headers: stripUndefined({ ...defaults.headers, ...headers }),
+      });
+      tries++;
+      if (response.status >= 200 && response.status < 300) break;
+    } while (tries < maxTries);
+    return { response, tries };
   }
 
   return {
