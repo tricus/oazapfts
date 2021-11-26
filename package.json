@@ -13,7 +13,8 @@
     "test:e2e": "npm run generate-demo && with-server 'cd demo && jest'",
     "start": "open-api-mocker -p $PORT -s demo/petstore.json",
     "generate-demo": "npm run prepare && ./lib/codegen/cli.js ./demo/petstore.json ./demo/api.ts && ./lib/codegen/cli.js --optimistic ./demo/petstore.json ./demo/optimisticApi.ts && prettier -w demo",
-    "prepare": "npm run build && chmod +x ./lib/codegen/cli.js && husky install"
+    "prepare": "npm run build && chmod +x ./lib/codegen/cli.js && husky install",
+    "help:publish": "echo Steps: npm login\n  update package.json version\n  npm publish"
   },
   "keywords": [
     "openapi",
