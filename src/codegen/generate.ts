@@ -181,6 +181,7 @@ export function supportDeepObjects(params: OpenAPIV3.ParameterObject[]) {
  */
 export default class ApiGenerator {
   constructor(
+    public readonly serviceName: string,
     public readonly spec: OpenAPIV3.Document,
     public readonly opts: Opts = {},
     /** Indicates if the document was converted from an older version of the OpenAPI specification. */
@@ -565,6 +566,14 @@ export default class ApiGenerator {
     const stub = cg.parseFile(
       path.resolve(__dirname, "../../src/codegen/ApiStub.ts")
     );
+
+    const serviceName = cg.findFirstVariableDeclaration(
+      stub.statements,
+      "serviceName"
+    );
+    Object.assign(serviceName, {
+      initializer: factory.createStringLiteral(this.serviceName),
+    });
 
     // ApiStub contains `const servers = {}`, find it ...
     const servers = cg.findFirstVariableDeclaration(stub.statements, "servers");

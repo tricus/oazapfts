@@ -7,6 +7,8 @@ import * as Oazapfts from "@tricus/oazapfts/lib/runtime";
 import * as QS from "@tricus/oazapfts/lib/runtime/query";
 //
 //#region ### Setup ######################################################################
+export const serviceName: string = "";
+
 export const defaults: Oazapfts.RequestOpts = {
   baseUrl: "/",
 };

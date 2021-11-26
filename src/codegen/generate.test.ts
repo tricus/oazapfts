@@ -31,12 +31,14 @@ describe("generate", () => {
   });
 
   it("should generate an api", async () => {
-    artefact = printAst(new ApiGenerator(spec).generateApi());
+    artefact = printAst(new ApiGenerator("test", spec).generateApi());
   });
 
   /* https://github.com/cotype/build-client/issues/5 */
   it("should generate same api a second time", async () => {
-    expect(printAst(new ApiGenerator(spec).generateApi())).toBe(artefact);
+    expect(printAst(new ApiGenerator("test", spec).generateApi())).toBe(
+      artefact
+    );
   });
 });
 
@@ -50,7 +52,7 @@ describe("generate with blob download", () => {
   });
 
   it("should generate an api using fetchBlob", async () => {
-    const artefact = printAst(new ApiGenerator(spec).generateApi());
+    const artefact = printAst(new ApiGenerator("test", spec).generateApi());
     const oneLine = artefact.replace(/\s+/g, " ");
     expect(oneLine).toContain(
       "return oazapfts.fetchBlob<{ status: 200; data: Blob; }>(`/file/${fileId}/download`, { ...opts });"
