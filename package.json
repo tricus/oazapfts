@@ -1,10 +1,10 @@
 {
   "name": "@tricus/oazapfts",
-  "version": "3.5.3",
+  "version": "3.5.4",
   "description": "OpenApi TypeScript client generator k6",
   "main": "lib/index.js",
   "bin": {
-    "oazapfts": "lib/codegen/cli.js"
+    "oazapfts-k6": "lib/codegen/cli.js"
   },
   "scripts": {
     "build": "tsc",
@@ -14,7 +14,7 @@
     "start": "open-api-mocker -p $PORT -s demo/petstore.json",
     "generate-demo": "npm run prepare && ./lib/codegen/cli.js ./demo/petstore.json ./demo/api.ts && ./lib/codegen/cli.js --optimistic ./demo/petstore.json ./demo/optimisticApi.ts && prettier -w demo",
     "prepare": "npm run build && chmod +x ./lib/codegen/cli.js && husky install",
-    "help:publish": "echo Steps: npm login\n  update package.json version\n  npm publish"
+    "help:publish": "echo Steps:\n  update package.json version\n  npm login  \n  npm publish"
   },
   "keywords": [
     "openapi",
@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.0.1",
-    "@types/k6": "^0.34.3",
+    "@types/k6": "^0.35.2",
     "lodash": "^4.17.20",
     "minimist": "^1.2.5",
     "swagger2openapi": "^7.0.7",

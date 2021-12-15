@@ -41,6 +41,7 @@ interface runtimeType {
     status: number;
     contentType: string;
     data: string | number[] | null | undefined;
+    tries: number;
   };
   fetchJson<T extends ApiResponse>(url: string, req?: FetchRequestOpts): T;
   fetchBlob<T extends ApiResponse>(url: string, req?: FetchRequestOpts): T;

@@ -71,7 +71,7 @@ if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
 
 for (let service of services) {
   const spec = urlPattern.replace(/\{.+\}/, service.alias);
-  const dest = path.join(outDir, `${service.name}.ts`);
+  const dest = path.posix.join(outDir, `${service.name}.ts`);
   console.log(`Generating client API for ${service.name}/${service.alias}:`);
   console.log(`${spec} => ${dest}`);
   generate(service.name, spec, dest, {
