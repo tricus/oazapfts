@@ -402,6 +402,8 @@ export default class ApiGenerator {
             : factory.createLiteralTypeNode(
                 ts.factory.createToken(ts.SyntaxKind.FalseKeyword)
               );
+        if (typeof s === "number")
+          return factory.createLiteralTypeNode(factory.createNumericLiteral(s));
         return factory.createLiteralTypeNode(factory.createStringLiteral(s));
       });
       return types.length > 1 ? factory.createUnionTypeNode(types) : types[0];
