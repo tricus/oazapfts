@@ -10,12 +10,14 @@ import {
   RefinedResponse,
   ResponseType,
 } from "k6/http";
+import { Rate, Trend } from "k6/metrics";
 
 export type RequestOpts = {
   baseUrl?: string;
   method?: string;
   fetch?: typeof k6_request;
   retries?: number;
+  functionName?: string;
 } & k6_Params;
 
 type FetchRequestOpts = RequestOpts & {
@@ -49,6 +51,26 @@ interface runtimeType {
   form(opts: JsonRequestOpts): RequestOpts;
   multipart(opts: MultipartRequestOpts): MultipartRequestOpts;
 }
+
+interface metrics_type {
+  Rate: Record<string, Rate>;
+  Trend: Record<string, Trend>;
+  getRateMetric(name: string): Rate;
+  getTrendMetric(name: string): Trend;
+}
+
+const metrics: metrics_type = {
+  Rate: {},
+  Trend: {},
+  getRateMetric: function (name) {
+    if (!!metrics.Rate[name]) metrics.Rate[name] = new Rate(name);
+    return metrics.Rate[name];
+  },
+  getTrendMetric: function (name) {
+    if (!!metrics.Trend[name]) metrics.Trend[name] = new Trend(name);
+    return metrics.Trend[name];
+  },
+};
 
 export function runtime(defaults: RequestOpts): runtimeType {
   function fetchText(url: string, req?: FetchRequestOpts) {
@@ -122,6 +144,14 @@ export function runtime(defaults: RequestOpts): runtimeType {
         ...params,
         headers: stripUndefined({ ...defaults.headers, ...headers }),
       });
+
+      metrics
+        .getRateMetric(`${req.functionName}-errors`)
+        .add(response.error_code);
+      metrics
+        .getTrendMetric(`${req.functionName}-duration`)
+        .add(response.timings.duration);
+
       tries++;
       if (response.status >= 200 && response.status < 300) break;
     } while (tries < maxTries);

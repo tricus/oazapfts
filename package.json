@@ -42,12 +42,12 @@
     "with-server": "^2.0.0"
   },
   "dependencies": {
-    "@apidevtools/swagger-parser": "^10.0.1",
-    "@types/k6": "^0.35.2",
-    "lodash": "^4.17.20",
+    "@apidevtools/swagger-parser": "^10.0.3",
+    "@types/k6": "^0.36.0",
+    "lodash": "^4.17.21",
     "minimist": "^1.2.5",
-    "swagger2openapi": "^7.0.7",
-    "typescript": "^4.4.4"
+    "swagger2openapi": "^7.0.8",
+    "typescript": "^4.5.5"
   },
   "lint-staged": {
     "*.{ts,js,json,md,yml}": "prettier --write"

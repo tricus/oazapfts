@@ -837,6 +837,29 @@ export default class ApiGenerator {
               },
               methodParams,
               cg.block(
+                // generate:
+                // if (!opts.functionName) opts.functionName = this.name;
+                factory.createIfStatement(
+                  factory.createLogicalNot(
+                    factory.createPropertyAccessExpression(
+                      factory.createIdentifier("opts"),
+                      factory.createIdentifier("functionName")
+                    )
+                  ),
+                  // then
+                  factory.createExpressionStatement(
+                    factory.createAssignment(
+                      factory.createPropertyAccessExpression(
+                        factory.createIdentifier("opts"),
+                        factory.createIdentifier("functionName")
+                      ),
+                      factory.createPropertyAccessExpression(
+                        factory.createIdentifier("this"),
+                        factory.createIdentifier("name")
+                      )
+                    )
+                  )
+                ),
                 factory.createReturnStatement(
                   this.wrapResult(
                     callOazapftsFunction(
