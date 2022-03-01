@@ -9,10 +9,10 @@ Generate TypeScript clients to tap into OpenAPI servers, for use with [`k6`](htt
 This fork produces APIs suitable for use with the [`k6`](https://k6.io) load testing tool.
 
 1. `runtime` is modified to use [`k6`'s](https://k6.io) [http library](https://k6.io/docs/javascript-api/k6-http/) for http requests.
-
-- Use of `aync/Promise` removed
-
-1. `codegen` and `runtime` are modified to automatically create and write `k6` metrics: -`<function name>-http-req-duration` Trend metric -`<function name>-errors` Rate metric
+   - Use of `aync/Promise` removed
+1. `codegen` and `runtime` are modified to automatically create and write to `k6` metrics:
+   - `<function name>-http-req-duration` Trend metric
+   - `<function name>-errors` Rate metric
 1. `--ignoreHeader` option added to the CLI which allows filtering out of headers via `simple-string-match` or `/regexp with options/i`.
 1. Tests are not updated and may have issues.
 
