@@ -1,6 +1,6 @@
 {
   "name": "@tricus/oazapfts",
-  "version": "3.5.5",
+  "version": "3.5.6",
   "description": "OpenApi TypeScript client generator k6",
   "main": "lib/index.js",
   "bin": {
@@ -28,7 +28,7 @@
     "@types/jest": "^27.0.1",
     "@types/lodash": "^4.14.161",
     "@types/minimist": "^1.2.0",
-    "@types/node": "^16.0.0",
+    "@types/node": "^17.0.21",
     "form-data": "^4.0.0",
     "husky": "^7.0.0",
     "jest": "^27.0.5",

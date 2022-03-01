@@ -7,7 +7,10 @@ import * as Oazapfts from "@tricus/oazapfts/lib/runtime";
 import * as QS from "@tricus/oazapfts/lib/runtime/query";
 //
 //#region ### Setup ######################################################################
-export const serviceName: string = "";
+
+const apiFunctions: string[] = [];
+
+export const metrics: Oazapfts.Metrics = Oazapfts.createMetrics(apiFunctions);
 
 export const defaults: Oazapfts.RequestOpts = {
   baseUrl: "/",

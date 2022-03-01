@@ -52,24 +52,14 @@ interface runtimeType {
   multipart(opts: MultipartRequestOpts): MultipartRequestOpts;
 }
 
-interface metrics_type {
-  Rate: Record<string, Rate>;
-  Trend: Record<string, Trend>;
-  getRateMetric(name: string): Rate;
-  getTrendMetric(name: string): Trend;
+export interface Metrics {
+  ErrorRate: Record<string, Rate>;
+  HttpReqDurationTrend: Record<string, Trend>;
 }
 
-const metrics: metrics_type = {
-  Rate: {},
-  Trend: {},
-  getRateMetric: function (name) {
-    if (!!metrics.Rate[name]) metrics.Rate[name] = new Rate(name);
-    return metrics.Rate[name];
-  },
-  getTrendMetric: function (name) {
-    if (!!metrics.Trend[name]) metrics.Trend[name] = new Trend(name);
-    return metrics.Trend[name];
-  },
+const metrics: Metrics = {
+  ErrorRate: {},
+  HttpReqDurationTrend: {},
 };
 
 export function runtime(defaults: RequestOpts): runtimeType {
@@ -145,12 +135,10 @@ export function runtime(defaults: RequestOpts): runtimeType {
         headers: stripUndefined({ ...defaults.headers, ...headers }),
       });
 
-      metrics
-        .getRateMetric(`${req.functionName}-errors`)
-        .add(response.error_code);
-      metrics
-        .getTrendMetric(`${req.functionName}-duration`)
-        .add(response.timings.duration);
+      metrics.ErrorRate[req.functionName ?? "???"].add(response.error_code);
+      metrics.HttpReqDurationTrend[req.functionName ?? "???"].add(
+        response.timings.duration
+      );
 
       tries++;
       if (response.status >= 200 && response.status < 300) break;
@@ -194,4 +182,22 @@ export function runtime(defaults: RequestOpts): runtimeType {
       };
     },
   };
+}
+
+export function createMetrics(functionNames: string[]) {
+  if (!metrics.ErrorRate.hasOwnProperty("???"))
+    metrics.ErrorRate["???"] = new Rate("???-rate", false);
+  if (!metrics.HttpReqDurationTrend.hasOwnProperty("???"))
+    metrics.HttpReqDurationTrend["???"] = new Trend("???-trend", true);
+
+  for (let fn of functionNames) {
+    if (!metrics.ErrorRate.hasOwnProperty(fn))
+      metrics.ErrorRate[fn] = new Rate(fn + "-errors", false);
+    if (!metrics.HttpReqDurationTrend.hasOwnProperty(fn))
+      metrics.HttpReqDurationTrend[fn] = new Trend(
+        fn + "-http-req-duration",
+        true
+      );
+  }
+  return metrics;
 }

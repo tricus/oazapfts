@@ -181,7 +181,6 @@ export function supportDeepObjects(params: OpenAPIV3.ParameterObject[]) {
  */
 export default class ApiGenerator {
   constructor(
-    public readonly serviceName: string,
     public readonly spec: OpenAPIV3.Document,
     public readonly opts: Opts = {},
     /** Indicates if the document was converted from an older version of the OpenAPI specification. */
@@ -569,14 +568,6 @@ export default class ApiGenerator {
       path.resolve(__dirname, "../../src/codegen/ApiStub.ts")
     );
 
-    const serviceName = cg.findFirstVariableDeclaration(
-      stub.statements,
-      "serviceName"
-    );
-    Object.assign(serviceName, {
-      initializer: factory.createStringLiteral(this.serviceName),
-    });
-
     // ApiStub contains `const servers = {}`, find it ...
     const servers = cg.findFirstVariableDeclaration(stub.statements, "servers");
     // servers.initializer is readonly, this might break in a future TS version, but works fine for now.
@@ -589,7 +580,7 @@ export default class ApiGenerator {
       "defaults"
     );
     if (!initializer || !ts.isObjectLiteralExpression(initializer)) {
-      throw new Error("No object literal: defaults");
+      throw new Error("Object literal no found in ApiStub.ts: 'defaults'");
     }
 
     cg.changePropertyValue(
@@ -837,27 +828,27 @@ export default class ApiGenerator {
               },
               methodParams,
               cg.block(
-                // generate:
-                // if (!opts.functionName) opts.functionName = this.name;
-                factory.createIfStatement(
-                  factory.createLogicalNot(
-                    factory.createPropertyAccessExpression(
-                      factory.createIdentifier("opts"),
-                      factory.createIdentifier("functionName")
-                    )
-                  ),
-                  // then
-                  factory.createExpressionStatement(
-                    factory.createAssignment(
-                      factory.createPropertyAccessExpression(
-                        factory.createIdentifier("opts"),
-                        factory.createIdentifier("functionName")
+                // Generate: opts = { functionName: "someFunction", ...(opts ?? {}) };
+                factory.createExpressionStatement(
+                  factory.createAssignment(
+                    factory.createIdentifier("opts"),
+                    factory.createObjectLiteralExpression([
+                      factory.createPropertyAssignment(
+                        "functionName",
+                        factory.createStringLiteral(name)
                       ),
-                      factory.createPropertyAccessExpression(
-                        factory.createIdentifier("this"),
-                        factory.createIdentifier("name")
-                      )
-                    )
+                      factory.createSpreadAssignment(
+                        factory.createParenthesizedExpression(
+                          factory.createBinaryExpression(
+                            factory.createIdentifier("opts"),
+                            factory.createToken(
+                              ts.SyntaxKind.QuestionQuestionToken
+                            ),
+                            factory.createObjectLiteralExpression()
+                          )
+                        )
+                      ),
+                    ])
                   )
                 ),
                 factory.createReturnStatement(
@@ -885,6 +876,17 @@ export default class ApiGenerator {
         );
       });
     });
+
+    Object.assign(
+      cg.findFirstVariableDeclaration(stub.statements, "apiFunctions"),
+      {
+        initializer: factory.createArrayLiteralExpression(
+          Object.keys(names)
+            .sort()
+            .map((k) => ts.factory.createStringLiteral(k))
+        ),
+      }
+    );
 
     function makeComment(text: string): ts.SynthesizedComment {
       return {
